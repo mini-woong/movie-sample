@@ -1,72 +1,48 @@
-const options = {
-  method: 'GET',
-  headers: {
-    accept: 'application/json',
-    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDMzZjQ0OTQxOWJhMmJkZWRiMWJjMTNjNjYyMDY3MSIsInN1YiI6IjY2MmIxNzBmMTc1MDUxMDExZDc4YjU4ZSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.aHbylSxa8vT1wF-QRKuHc6BF1rAOU7XvV1mxmCCGI-g'
+export const generateMovieCards = async () => {
+  const movies = await fetchMovieData();
+  const cardList = document.querySelector(".card-list");
+  cardList.innerHTML = movies
+    .map(
+      (movie) => `
+        <div class="movie-card" id="${movie.id}">
+        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+        <h3 class="movie-title">${movie.title}</h3>
+        <p>${movie.overview}</p>
+        <p>Rating: ${movie.vote_average}</p>
+        </div>`
+    )
+    .join("");
+
+  //id 출력
+  cardList.addEventListener("click", handleClickCard);
+  // 이벤트 위임: 하위요소에서 발생한 이벤트를 상위요소에서 처리
+  function handleClickCard(event) {
+    // 카드 외 영역 클릭 무시
+    if (event.target === cardList) return;
+
+    if (event.target.matches(".movie-card")) {
+      alert(`영화 id: ${event.target.id}`);
+    } else {
+      // 카드의 자식 태그 (img, h3, p) 클릭 시 부모의 id로 접근
+      alert(`영화 id: ${event.target.parentNode.id}`);
+    }
   }
 };
 
-//목록 출력
-let url = 'https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1'
-let movie = []
-fetch(url, options)
-  .then(response => response.json())
-  .then(date => {
-    let movie = date.results
-    console.log(movie)
-    movie.forEach(elem => {
-
-      let image = 'https://image.tmdb.org/t/p/w500' + elem.poster_path
-
-      let id = elem.id
-      let movieTitle = elem.title
-      let content = elem.overview
-      let rate = elem.vote_average
-
-      document.querySelector('.card-list').innerHTML += `
-        <div class="movie-card" id="${id}" onClick="clickCard(${id})">
-            <img src="${image}" alt="${movieTitle}">
-            <h3 class="movie-title">${movieTitle}</h3>
-            <p class="content">${content}</p>
-            <p class="rate">Rating: ${rate}</p>
-        </div>`;
-
-    });
-  })
-
-
-// 검색창의 유효성 검사
-const handleSearch = event => {
-  const searchInput = document.getElementById('search-input')
-  event.preventDefault();
-  if (!searchInput.innerText) {	                    // 자바스크립트 : 빈문자열 -> false 반환
-    alert("입력하지 않았습니다.");
-    searchInput.focus();
-    return false;
-  }
-}
-// // 검색어에 따라 사용자 필터링하는 함수
-// function filter() {
-//   for (let i = 0; i < movieCard.length; i++) {
-//     movieTitle = movieCard[i].getElementsByClassName("movie-title");
-//     if (movieTitle[0].innerHTML.toLowerCase().indexOf(search) != -1
-//     ) {
-//       movieTitle[i].style.display = "flex"
-//     } else {
-//       movieTitle[i].style.display = "none"
-//     }
-//   }
-
-
-// }
-
-// // 검색 입력 이벤트 리스너 등록
-// searchInput.addEventListener("input", (e) => {
-//   const value = e.target.value.toLowerCase();
-//   filterUsers(value);
-// });
-
-//id 출력
-let clickCard = id => {
-  alert('id : ' + id)
+//API 가져오기
+async function fetchMovieData() {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization:
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NThhODc2ZTY5NDA4NWY4YTA1MmQyNjc5MTRhY2RlMiIsInN1YiI6IjYxYzNjZjY5MzdiM2E5MDBjMzQ2YzYyYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.pPkre3BdMQtujbkqtPmW7TC_022A-ZR2M_ZShzd_kDU",
+    },
+  };
+  const response = await fetch(
+    "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1&include_adult=false",
+    options
+  );
+  const data = await response.json();
+  return data.results;
 }
